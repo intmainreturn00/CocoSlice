@@ -30,7 +30,6 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
     private var mGLSurfaceView: Cocos2dxGLSurfaceView? = null
     private var mGLContextAttrs: IntArray? = null
     private var handler: Cocos2dxHandler? = null //
-    private var sContext: Cocos2dxActivity? = null
     private var mVideoHelper: Cocos2dxVideoHelper? = null
     private var mWebViewHelper: Cocos2dxWebViewHelper? = null
     private var mEditBoxHelper: Cocos2dxEditBoxHelper? = null
@@ -121,10 +120,10 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
         /*if (mVideoHelper == null) {
             mVideoHelper = Cocos2dxVideoHelper(activity, mFrameLayout)
         }
-
+        */
         if (mWebViewHelper == null) {
             mWebViewHelper = Cocos2dxWebViewHelper(mFrameLayout)
-        }*/
+        }
 
         if (mEditBoxHelper == null) {
             mEditBoxHelper = Cocos2dxEditBoxHelper(mFrameLayout)
@@ -152,14 +151,6 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
         resumeIfHasFocus()
 
         Cocos2dxEngineDataManager.resume()
-    }
-
-    fun onWindowFocusChanged(hasFocus: Boolean) {
-        Log.d(TAG, "onWindowFocusChanged() hasFocus=$hasFocus")
-        activity?.onWindowFocusChanged(hasFocus)
-
-        this.hasFocus = hasFocus
-        resumeIfHasFocus()
     }
 
     override fun setUserVisibleHint(visible: Boolean) {
@@ -202,46 +193,36 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
     }
 
 
-    protected var mFrameLayout: ResizeLayout? = null
+    lateinit var mFrameLayout: ResizeLayout
     fun init() {
 
-        // FrameLayout
-        val framelayout_params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+        val framelayout_params = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT)
 
         mFrameLayout = ResizeLayout(context)
 
-        mFrameLayout!!.layoutParams = framelayout_params
+        mFrameLayout.layoutParams = framelayout_params
 
         // Cocos2dxEditText layout
         val edittext_layout_params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT)
         val edittext = Cocos2dxEditBox(context)
         edittext.layoutParams = edittext_layout_params
+        mFrameLayout.addView(edittext)
 
-
-        mFrameLayout!!.addView(edittext)
-
-        // Cocos2dxGLSurfaceView
         this.mGLSurfaceView = this.onCreateView()
-
-        // ...add to FrameLayout
-        mFrameLayout!!.addView(this.mGLSurfaceView)
-
-        // Switch to supported OpenGL (ARGB888) mode on emulator
-        // this line dows not needed on new emulators and also it breaks stencil buffer
-        //if (isAndroidEmulator())
-        //   this.mGLSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+        mFrameLayout.addView(this.mGLSurfaceView)
 
         this.mGLSurfaceView?.setCocos2dxRenderer(Cocos2dxRenderer())
-        this.mGLSurfaceView?.setCocos2dxEditText(edittext)
+        this.mGLSurfaceView?.cocos2dxEditText = edittext
 
         // Set framelayout as the content view
         //setContentView(mFrameLayout)
     }
 
 
-    fun onCreateView(): Cocos2dxGLSurfaceView {
+    private fun onCreateView(): Cocos2dxGLSurfaceView {
         val glSurfaceView = Cocos2dxGLSurfaceView(context)
         //this line is need on some device if we specify an alpha bits
         if (mGLContextAttrs?.get(3)!! > 0) glSurfaceView.holder.setFormat(PixelFormat.TRANSLUCENT)
@@ -252,7 +233,7 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
         return glSurfaceView
     }
 
-    protected fun hideVirtualButton() {
+    private fun hideVirtualButton() {
         if (showVirtualButton) {
             return
         }
@@ -291,24 +272,14 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
     }
 
 
-    private fun isAndroidEmulator(): Boolean {
-        val model = Build.MODEL
-        Log.d(TAG, "model=$model")
-        val product = Build.PRODUCT
-        Log.d(TAG, "product=" + product!!)
-        var isEmulator = false
-        isEmulator = product == "sdk" || product.contains("_sdk") || product.contains("sdk_")
-        Log.d(TAG, "isEmulator=$isEmulator")
-        return isEmulator
-    }
-
     private fun isDeviceLocked(): Boolean {
-        val keyguardManager = context?.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
-        return keyguardManager.inKeyguardRestrictedInputMode()
+        val keyguardManager = context?.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+        return keyguardManager?.inKeyguardRestrictedInputMode() ?: false
     }
 
     private fun isDeviceAsleep(): Boolean {
-        val powerManager = context?.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val powerManager = context?.getSystemService(Context.POWER_SERVICE) as? PowerManager
+                ?: return false
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
             !powerManager.isInteractive
         } else {
