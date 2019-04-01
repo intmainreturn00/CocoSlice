@@ -1,5 +1,4 @@
 <resources>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="card1_text">This is native Android Kotlin Fragment</string>
+    <string name="card2_text">Welcome to the Coco Slice! \n\nThis project allows you to run Cocos2d-x (current version is 3.17.1) inside the separate android fragment. By default, cocos only let you start its rendering inside Cocos2dxActivity and occupy all window. \n\nCoco Slice brings new class Cocos2dxFragment, which binds together GLSurfaceView and fragment lifecycle methods, so you could easily take best from both worlds. </string>
 </resources>
