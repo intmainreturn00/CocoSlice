@@ -62,7 +62,7 @@ bool HelloWorld::init() {
     skeletonNode->setAnimation(0, "walk", true);
 
     skeletonNode->setAnchorPoint(Vec2(0, 0));
-    skeletonNode->setPosition(Vec2(_contentSize.width / 3, 20));
+    skeletonNode->setPosition(Vec2(center.x / 2 + _contentSize.width / 2, 20));
     skeletonNode->setScale(0.2);
     addChild(skeletonNode);
 

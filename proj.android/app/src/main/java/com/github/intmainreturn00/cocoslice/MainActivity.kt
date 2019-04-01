@@ -8,11 +8,13 @@ import kotlinx.android.synthetic.main.activity_main.*
 import org.cocos2dx.lib.Cocos2dxHelper
 
 
-class MainActivity : AppCompatActivity(), Cocos2dxHelper.Cocos2dxHelperListener {
+class MainActivity : AppCompatActivity(), Cocos2dxHelper.Cocos2dxHelperListener, AndroidTab.OnNextButtonPressed {
 
     override fun showDialog(pTitle: String?, pMessage: String?) {}
 
     override fun runOnGLThread(pRunnable: Runnable?) {}
+
+    override fun buttonPressed() = pager.setCurrentItem(2, true)
 
     lateinit var adapter: MyPagerAdapter
 

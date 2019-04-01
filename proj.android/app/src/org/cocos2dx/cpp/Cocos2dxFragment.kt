@@ -22,10 +22,6 @@ import javax.microedition.khronos.egl.EGLDisplay
 
 class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
 
-    companion object {
-        const val TAG = "Cocos2dxFragment"
-    }
-
     private lateinit var surface: Cocos2dxGLSurfaceView
     private lateinit var mGLContextAttrs: IntArray
     private var mWebViewHelper: Cocos2dxWebViewHelper? = null
@@ -74,7 +70,7 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
         // Workaround in https://stackoverflow.com/questions/16283079/re-launch-of-activity-on-home-button-but-only-the-first-time/16447508
         if (!activity?.isTaskRoot!!) {
             activity?.finish()
-            Log.w(TAG, "[Workaround] Ignore the activity started from icon!")
+            println("[Workaround] Ignore the activity started from icon!")
             return
         }
 
@@ -103,24 +99,23 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
     private external fun getGLContextAttrs(): IntArray
 
     override fun onResume() {
-        Log.d(TAG, "onResume()")
         paused = false
         super.onResume()
     }
 
-    override fun setUserVisibleHint(visible: Boolean) {
-        Log.d(TAG, "setUserVisibleHint($visible)")
-        super.setUserVisibleHint(visible)
-        this.visible = visible
-        if (visible) {
-            resumeIfHasActive()
-            Cocos2dxEngineDataManager.resume()
-        } else {
-            Cocos2dxHelper.onPause()
-            surface.onPause()
-            Cocos2dxEngineDataManager.pause()
-        }
-    }
+//    override fun setUserVisibleHint(visible: Boolean) {
+//        println("setUserVisibleHint($visible)")
+//        super.setUserVisibleHint(visible)
+//        this.visible = visible
+//        if (visible) {
+//            resumeIfHasActive()
+//            Cocos2dxEngineDataManager.resume()
+//        } else {
+//            Cocos2dxHelper.onPause()
+//            surface.onPause()
+//            Cocos2dxEngineDataManager.pause()
+//        }
+//    }
 
     private fun resumeIfHasActive() {
         val readyToPlay = !isDeviceLocked() && !isDeviceAsleep()
@@ -133,7 +128,6 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
 
 
     override fun onPause() {
-        Log.d(TAG, "onPause()")
         paused = true
         super.onPause()
     }
@@ -171,7 +165,6 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
     private fun onCreateView(): Cocos2dxGLSurfaceView {
         //val glSurfaceView = Cocos2dxGLSurfaceView(context)
         val glSurfaceView = MyCocos2dxGLSurfaceView(context!!) {
-            println("{$TAG}onBackPressed()")
             activity?.onBackPressed()
         }
         //this line is need on some device if we specify an alpha bits

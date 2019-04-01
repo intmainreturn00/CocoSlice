@@ -9,8 +9,7 @@ class MyPagerAdapter(fm: FragmentManager) : FragmentStatePagerAdapter(fm) {
 
     override fun getItem(position: Int): Fragment? = when (position) {
         0 -> AndroidTab()
-        1 -> AnotherAndroidTab()//Cocos2dxFragment()
-        //2 -> //AnotherAndroidTab()
+        1 -> AnotherAndroidTab()
         else -> null
     }
 
@@ -21,7 +20,6 @@ class MyPagerAdapter(fm: FragmentManager) : FragmentStatePagerAdapter(fm) {
     override fun getPageTitle(position: Int): CharSequence? = when (position) {
         0 -> "Android"
         1 -> "Cocos"
-        2 -> "Another Android"
         else -> null
     }
 }
