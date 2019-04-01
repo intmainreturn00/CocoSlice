@@ -74,24 +74,30 @@ bool HelloWorld::init() {
     this->addChild(_camera);
 
     auto rootps = PUParticleSystem3D::create("lineStreak.pu", "pu_mediapack_01.material");
-    rootps->setCameraMask((unsigned short)CameraFlag::USER1);
+    rootps->setCameraMask((unsigned short) CameraFlag::USER1);
     rootps->setScale(4.0f);
     rootps->startParticleSystem();
     this->addChild(rootps, 0, 0x0001);
 
     scheduleUpdate();
 
+    runAction(RepeatForever::create(Sequence::create(
+            DelayTime::create(1),
+            CallFunc::create([&]() { CCLOG("running"); }),
+            nullptr
+    )));
+
     return true;
 }
 
 void HelloWorld::update(float delta) {
     ParticleSystem3D *ps = static_cast<ParticleSystem3D *>(this->getChildByTag(0x0001));
-    if (ps){
+    if (ps) {
         unsigned int count = 0;
         auto children = ps->getChildren();
-        for (auto iter : children){
+        for (auto iter : children) {
             ParticleSystem3D *child = dynamic_cast<ParticleSystem3D *>(iter);
-            if (child){
+            if (child) {
                 count += child->getAliveParticleCount();
             }
         }

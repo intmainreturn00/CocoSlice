@@ -5,6 +5,7 @@ import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import kotlinx.android.synthetic.main.fragment_another_android_tab.*
 
 
 class AnotherAndroidTab : Fragment() {
@@ -13,4 +14,5 @@ class AnotherAndroidTab : Fragment() {
                               savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_another_android_tab, container, false)
     }
+
 }

@@ -5,7 +5,6 @@ import android.app.KeyguardManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.PixelFormat
-import android.media.AudioManager
 import android.opengl.GLSurfaceView
 import android.os.Build
 import android.os.Bundle
@@ -17,6 +16,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import org.cocos2dx.cpp.MyCocos2dxGLSurfaceView
 import javax.microedition.khronos.egl.EGL10
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.egl.EGLDisplay
@@ -29,13 +29,10 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
 
     private var mGLSurfaceView: Cocos2dxGLSurfaceView? = null
     private var mGLContextAttrs: IntArray? = null
-    private var handler: Cocos2dxHandler? = null
-    private var mVideoHelper: Cocos2dxVideoHelper? = null
     private var mWebViewHelper: Cocos2dxWebViewHelper? = null
     private var mEditBoxHelper: Cocos2dxEditBoxHelper? = null
-    private var hasFocus = false
+    private var visible = false
     private var showVirtualButton = false
-    private var gainAudioFocus = false
     private var paused = true
 
 
@@ -43,7 +40,6 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
         val msg = Message()
         msg.what = Cocos2dxHandler.HANDLER_SHOW_DIALOG
         msg.obj = Cocos2dxHandler.DialogMessage(pTitle, pMessage)
-        this.handler?.sendMessage(msg)
     }
 
     override fun runOnGLThread(pRunnable: Runnable?) {
@@ -68,17 +64,6 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
         this.showVirtualButton = value
     }
 
-    fun setEnableAudioFocusGain(value: Boolean) {
-        if (gainAudioFocus != value) {
-            if (!paused) {
-                if (value)
-                    Cocos2dxAudioFocusManager.registerAudioFocusListener(context)
-                else
-                    Cocos2dxAudioFocusManager.unregisterAudioFocusListener(context)
-            }
-            gainAudioFocus = value
-        }
-    }
 
     private fun onLoadNativeLibraries() {
         try {
@@ -109,18 +94,11 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
 
         onLoadNativeLibraries()
 
-        //sContext = context
-        //this.handler = Cocos2dxHandler(activity)
-
         Cocos2dxHelper.init(activity)
 
         this.mGLContextAttrs = getGLContextAttrs()
         this.init()
 
-        /*if (mVideoHelper == null) {
-            mVideoHelper = Cocos2dxVideoHelper(activity, mFrameLayout)
-        }
-        */
         if (mWebViewHelper == null) {
             mWebViewHelper = Cocos2dxWebViewHelper(mFrameLayout)
         }
@@ -132,11 +110,9 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
         val window = activity?.window
         window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
 
-        // Audio configuration
-        //this.setVolumeControlStream(AudioManager.STREAM_MUSIC)
-
         Cocos2dxEngineDataManager.init(context, mGLSurfaceView)
     }
+
 
     //native method,call GLViewImpl::getGLContextAttrs() to get the OpenGL ES context attributions
     private external fun getGLContextAttrs(): IntArray
@@ -145,28 +121,28 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
         Log.d(TAG, "onResume()")
         paused = false
         super.onResume()
-        if (gainAudioFocus)
-            Cocos2dxAudioFocusManager.registerAudioFocusListener(context)
-        this.hideVirtualButton()
-        resumeIfHasFocus()
-
-        Cocos2dxEngineDataManager.resume()
     }
 
     override fun setUserVisibleHint(visible: Boolean) {
+        Log.d(TAG, "setUserVisibleHint($visible)")
         super.setUserVisibleHint(visible)
-        hasFocus = visible
-        if (hasFocus)
-            resumeIfHasFocus()
+        this.visible = visible
+        if (visible) {
+            resumeIfHasActive()
+            Cocos2dxEngineDataManager.resume()
+            this.hideVirtualButton()
+        } else {
+            Cocos2dxHelper.onPause()
+            mGLSurfaceView?.onPause()
+            Cocos2dxEngineDataManager.pause()
+        }
     }
 
-    private fun resumeIfHasFocus() {
-        //It is possible for the app to receive the onWindowsFocusChanged(true) event
-        //even though it is locked or asleep
+    private fun resumeIfHasActive() {
         val readyToPlay = !isDeviceLocked() && !isDeviceAsleep()
 
-        if (hasFocus && readyToPlay) {
-            this.hideVirtualButton()
+        if (visible && readyToPlay) {
+            hideVirtualButton()
             Cocos2dxHelper.onResume()
             mGLSurfaceView?.onResume()
         }
@@ -177,18 +153,11 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
         Log.d(TAG, "onPause()")
         paused = true
         super.onPause()
-        if (gainAudioFocus)
-            Cocos2dxAudioFocusManager.unregisterAudioFocusListener(context)
-        Cocos2dxHelper.onPause()
-        mGLSurfaceView?.onPause()
-        Cocos2dxEngineDataManager.pause()
     }
 
-    override fun onDestroy() {
-        if (gainAudioFocus)
-            Cocos2dxAudioFocusManager.unregisterAudioFocusListener(context)
-        super.onDestroy()
 
+    override fun onDestroy() {
+        super.onDestroy()
         Cocos2dxEngineDataManager.destroy()
     }
 
@@ -220,7 +189,11 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
 
 
     private fun onCreateView(): Cocos2dxGLSurfaceView {
-        val glSurfaceView = Cocos2dxGLSurfaceView(context)
+        //val glSurfaceView = Cocos2dxGLSurfaceView(context)
+        val glSurfaceView = MyCocos2dxGLSurfaceView(context!!) {
+            println("{$TAG}onBackPressed()")
+            activity?.onBackPressed()
+        }
         //this line is need on some device if we specify an alpha bits
         if (mGLContextAttrs?.get(3)!! > 0) glSurfaceView.holder.setFormat(PixelFormat.TRANSLUCENT)
         // use custom EGLConfigureChooser
