@@ -25,10 +25,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginRight="8dp"
-                android:layout_marginBottom="8dp"
+                android:layout_margin="8dp"
                 android:text="@string/card1_text"
                 android:textSize="18sp"
                 app:layout_constraintBottom_toTopOf="@+id/rating"
@@ -86,9 +83,9 @@
                 android:id="@+id/img"
                 android:layout_width="match_parent"
                 android:layout_height="150dp"
-                android:src="@drawable/coconut"
-                android:scaleType="fitCenter"
                 android:layout_margin="16dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/coconut"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -98,8 +95,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
-                android:textSize="16sp"
                 android:text="@string/card2_text"
+                android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -109,7 +106,6 @@
         </android.support.constraint.ConstraintLayout>
 
     </android.support.v7.widget.CardView>
-
 
 
     <android.support.design.widget.FloatingActionButton
