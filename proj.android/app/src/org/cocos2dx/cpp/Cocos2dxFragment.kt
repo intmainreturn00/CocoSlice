@@ -8,7 +8,6 @@ import android.graphics.PixelFormat
 import android.opengl.GLSurfaceView
 import android.os.Build
 import android.os.Bundle
-import android.os.Message
 import android.os.PowerManager
 import android.support.v4.app.Fragment
 import android.util.Log
@@ -27,41 +26,33 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
         const val TAG = "Cocos2dxFragment"
     }
 
-    private var mGLSurfaceView: Cocos2dxGLSurfaceView? = null
-    private var mGLContextAttrs: IntArray? = null
+    private lateinit var surface: Cocos2dxGLSurfaceView
+    private lateinit var mGLContextAttrs: IntArray
     private var mWebViewHelper: Cocos2dxWebViewHelper? = null
     private var mEditBoxHelper: Cocos2dxEditBoxHelper? = null
     private var visible = false
-    private var showVirtualButton = false
     private var paused = true
+    private lateinit var rootLayout: ResizeLayout
 
 
-    override fun showDialog(pTitle: String?, pMessage: String?) {
-        val msg = Message()
-        msg.what = Cocos2dxHandler.HANDLER_SHOW_DIALOG
-        msg.obj = Cocos2dxHandler.DialogMessage(pTitle, pMessage)
-    }
+    override fun showDialog(pTitle: String?, pMessage: String?) {}
 
     override fun runOnGLThread(pRunnable: Runnable?) {
-        this.mGLSurfaceView?.queueEvent(pRunnable)
+        this.surface.queueEvent(pRunnable)
     }
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return mFrameLayout
+        return rootLayout
     }
 
 
-    fun getGLSurfaceView(): Cocos2dxGLSurfaceView {
-        return mGLSurfaceView!!
+    fun getSurfaceView(): Cocos2dxGLSurfaceView {
+        return surface
     }
 
     fun setKeepScreenOn(value: Boolean) {
-        activity?.runOnUiThread(Runnable { mGLSurfaceView?.setKeepScreenOn(value) })
-    }
-
-    fun setEnableVirtualButton(value: Boolean) {
-        this.showVirtualButton = value
+        activity?.runOnUiThread { surface.keepScreenOn = value }
     }
 
 
@@ -82,15 +73,10 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
 
         // Workaround in https://stackoverflow.com/questions/16283079/re-launch-of-activity-on-home-button-but-only-the-first-time/16447508
         if (!activity?.isTaskRoot!!) {
-            // Android launched another instance of the root activity into an existing task
-            //  so just quietly finish and go away, dropping the user back into the activity
-            //  at the top of the stack (ie: the last state of this task)
             activity?.finish()
             Log.w(TAG, "[Workaround] Ignore the activity started from icon!")
             return
         }
-
-        this.hideVirtualButton()
 
         onLoadNativeLibraries()
 
@@ -100,17 +86,16 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
         this.init()
 
         if (mWebViewHelper == null) {
-            mWebViewHelper = Cocos2dxWebViewHelper(mFrameLayout)
+            mWebViewHelper = Cocos2dxWebViewHelper(rootLayout)
         }
 
         if (mEditBoxHelper == null) {
-            mEditBoxHelper = Cocos2dxEditBoxHelper(mFrameLayout)
+            mEditBoxHelper = Cocos2dxEditBoxHelper(rootLayout)
         }
 
-        val window = activity?.window
-        window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
+        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
 
-        Cocos2dxEngineDataManager.init(context, mGLSurfaceView)
+        Cocos2dxEngineDataManager.init(context, surface)
     }
 
 
@@ -130,10 +115,9 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
         if (visible) {
             resumeIfHasActive()
             Cocos2dxEngineDataManager.resume()
-            this.hideVirtualButton()
         } else {
             Cocos2dxHelper.onPause()
-            mGLSurfaceView?.onPause()
+            surface.onPause()
             Cocos2dxEngineDataManager.pause()
         }
     }
@@ -142,9 +126,8 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
         val readyToPlay = !isDeviceLocked() && !isDeviceAsleep()
 
         if (visible && readyToPlay) {
-            hideVirtualButton()
             Cocos2dxHelper.onResume()
-            mGLSurfaceView?.onResume()
+            surface.onResume()
         }
     }
 
@@ -162,29 +145,26 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
     }
 
 
-    lateinit var mFrameLayout: ResizeLayout
     fun init() {
-
-        val framelayout_params = ViewGroup.LayoutParams(
+        val params = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT)
 
-        mFrameLayout = ResizeLayout(context)
+        rootLayout = ResizeLayout(context)
+        rootLayout.layoutParams = params
 
-        mFrameLayout.layoutParams = framelayout_params
-
-        // Cocos2dxEditText layout
-        val edittext_layout_params = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+        val params2 = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT)
-        val edittext = Cocos2dxEditBox(context)
-        edittext.layoutParams = edittext_layout_params
-        mFrameLayout.addView(edittext)
+        val editText = Cocos2dxEditBox(context)
+        editText.layoutParams = params2
+        rootLayout.addView(editText)
 
-        this.mGLSurfaceView = this.onCreateView()
-        mFrameLayout.addView(this.mGLSurfaceView)
+        this.surface = this.onCreateView()
+        rootLayout.addView(this.surface)
 
-        this.mGLSurfaceView?.setCocos2dxRenderer(Cocos2dxRenderer())
-        this.mGLSurfaceView?.cocos2dxEditText = edittext
+        this.surface.setCocos2dxRenderer(Cocos2dxRenderer())
+        this.surface.cocos2dxEditText = editText
     }
 
 
@@ -201,44 +181,6 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
         glSurfaceView.setEGLConfigChooser(chooser)
 
         return glSurfaceView
-    }
-
-    private fun hideVirtualButton() {
-        if (showVirtualButton) {
-            return
-        }
-
-        if (Build.VERSION.SDK_INT >= 19) {
-            // use reflection to remove dependence of API level
-
-            val viewClass = View::class.java
-
-            try {
-                val SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION = Cocos2dxReflectionHelper.getConstantValue<Int>(viewClass, "SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION")!!
-                val SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN = Cocos2dxReflectionHelper.getConstantValue<Int>(viewClass, "SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN")!!
-                val SYSTEM_UI_FLAG_HIDE_NAVIGATION = Cocos2dxReflectionHelper.getConstantValue<Int>(viewClass, "SYSTEM_UI_FLAG_HIDE_NAVIGATION")!!
-                val SYSTEM_UI_FLAG_FULLSCREEN = Cocos2dxReflectionHelper.getConstantValue<Int>(viewClass, "SYSTEM_UI_FLAG_FULLSCREEN")!!
-                val SYSTEM_UI_FLAG_IMMERSIVE_STICKY = Cocos2dxReflectionHelper.getConstantValue<Int>(viewClass, "SYSTEM_UI_FLAG_IMMERSIVE_STICKY")!!
-                val SYSTEM_UI_FLAG_LAYOUT_STABLE = Cocos2dxReflectionHelper.getConstantValue<Int>(viewClass, "SYSTEM_UI_FLAG_LAYOUT_STABLE")!!
-
-                // getWindow().getDecorView().setSystemUiVisibility();
-                val parameters = arrayOf<Any>(SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        or SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        or SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        or SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
-
-                        or SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
-
-                        or SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-                Cocos2dxReflectionHelper.invokeInstanceMethod<Void>(activity?.window?.decorView,
-                        "setSystemUiVisibility",
-                        arrayOf<Class<*>>(Integer.TYPE),
-                        parameters)
-            } catch (e: NullPointerException) {
-                Log.e(TAG, "hideVirtualButton", e)
-            }
-
-        }
     }
 
 
