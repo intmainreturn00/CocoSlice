@@ -29,7 +29,7 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
 
     private var mGLSurfaceView: Cocos2dxGLSurfaceView? = null
     private var mGLContextAttrs: IntArray? = null
-    private var handler: Cocos2dxHandler? = null //
+    private var handler: Cocos2dxHandler? = null
     private var mVideoHelper: Cocos2dxVideoHelper? = null
     private var mWebViewHelper: Cocos2dxWebViewHelper? = null
     private var mEditBoxHelper: Cocos2dxEditBoxHelper? = null
@@ -80,12 +80,12 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
         }
     }
 
-    fun onLoadNativeLibraries() {
+    private fun onLoadNativeLibraries() {
         try {
-            val ai = context?.getPackageManager()?.getApplicationInfo(context?.getPackageName(), PackageManager.GET_META_DATA)
+            val ai = context?.packageManager?.getApplicationInfo(context?.packageName, PackageManager.GET_META_DATA)
             val bundle = ai?.metaData
             val libName = bundle?.getString("android.app.lib_name")
-            System.loadLibrary(libName)
+            System.loadLibrary(libName!!)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -216,9 +216,6 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
 
         this.mGLSurfaceView?.setCocos2dxRenderer(Cocos2dxRenderer())
         this.mGLSurfaceView?.cocos2dxEditText = edittext
-
-        // Set framelayout as the content view
-        //setContentView(mFrameLayout)
     }
 
 
