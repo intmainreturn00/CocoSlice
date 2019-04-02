@@ -38,9 +38,8 @@ class Cocos2dxFragment : Fragment(), Cocos2dxHelper.Cocos2dxHelperListener {
     }
 
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return rootLayout
-    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
+            rootLayout
 
 
     fun getSurfaceView(): Cocos2dxGLSurfaceView {
