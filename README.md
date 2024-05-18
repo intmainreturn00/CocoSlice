@@ -8,6 +8,6 @@ This project allows you to run Cocos2d-x (current version is 3.17.1) inside the 
 <img src="https://img.shields.io/badge/made%20with-kotlin-blue.svg" alt="made with Kotlin">
 ![GitHub stars](https://img.shields.io/github/stars/intmainreturn00/CocoSlice.svg?style=social)
 
-If you’d like the work, star this repo ⭐️ or you can [buy me a cup of coffee](http://ko-fi.com/intmainreturn00) ☕️
+[buy me a cup of coffee](http://ko-fi.com/intmainreturn00) ☕️
 
-You can find implementation details at my [Medium Post](https://medium.com/@intmainreturn00/cocos2dx-sliced-3f2434226b87) <img src="https://github.com/Medium/medium-logos/blob/master/monogram/Monogram.png" width="20">
+Implementation details [Medium Post](https://medium.com/@intmainreturn00/cocos2dx-sliced-3f2434226b87) <img src="https://github.com/Medium/medium-logos/blob/master/monogram/Monogram.png" width="20">
