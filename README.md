@@ -1,7 +1,7 @@
 # CocoSlice
 This project allows you to run Cocos2d-x (current version is 3.17.1) inside the separate android fragment.
 
-![|50](results.gif)
+<img src="results.gif" width="200" />
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <img src="https://img.shields.io/badge/made%20with-cocos2dx-blue.svg" alt="made with Cocos2dx">
